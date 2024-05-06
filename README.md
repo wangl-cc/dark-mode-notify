@@ -1,22 +1,60 @@
 # dark-mode-notify
 
-This small Swift program will run a command whenever the dark mode status changes on macOS. You can use it to change your vim color config automatically for example.
+A Swift program will run a command whenever the dark mode status changes on macOS.
+You can use it to change your vim color config automatically for example.
+
+## Installation
+
+It's recommended to Homebrew to install this program:
+
+```sh
+brew tap wangl-cc/loong/dark-mode-notify
+```
+
+Alternatively, you can clone this repository and run `make install` to
+build and install this program.
 
 ## Usage
 
-Use make to compile the program, then run directly:
+This program is can run once or as a daemon.
 
-```shell
-.build/release/dark-mode-notify <your-program>
+### Run once
+
+```sh
+dark-mode-notify [<your-program> [args...]]
 ```
 
-Alternatively you can install it by doing `make install`.
+In this case, `dark-mode-notify` will run `<your-program>` once and exit.
+The `[args...]` are optional arguments to pass to `<your-program>`.
+And the environment variable `DARKMODE` passed to `<your-program>`,
+which is either `1` or `0` based on the appearance of macOS.
 
-The program will be run immediately when the command starts, and every time the OS goes from dark mode to light mode or back. The environment variable `DARKMODE` will be set to either `1` or `0`.
+If you don't specify `<your-program>`, `dark-mode-notify` will try to run
+the `$HOME/.config/dark-mode-notify/notify` script.
 
-## Background agent
+### Run as a daemon
 
-To keep this program running in the background, compile the binary to somewhere and create the following file at `~/Library/LaunchAgents/ke.bou.dark-mode-notify.plist`. Don't forget to replace the arguments and the path to the logs (which comes in handy for debugging)
+```sh
+dark-mode-notify --daemon [<your-program> [args...]]
+```
+
+If you run `dark-mode-notify` with the `--daemon` flag will be run as a daemon.
+The rest of the arguments are the same as the one-time run.
+
+Once started as a daemon, `dark-mode-notify` will watch the dark mode status
+and run the program whenever the dark mode status changes.
+
+## Starting at login
+
+If you want to run `dark-mode-notify` at login, it's recommended to use `brew services`:
+
+```sh
+brew services start wangl-cc/loong/dark-mode-notify
+```
+
+Make sure you have a `notify` script in `$HOME/.config/dark-mode-notify/` directory.
+
+Or you may need to create a launch agent file in `~/Library/LaunchAgents/ke.bou.dark-mode-notify.plist`:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -41,8 +79,12 @@ To keep this program running in the background, compile the binary to somewhere 
 </plist>
 ```
 
-Then `launchctl load -w ~/Library/LaunchAgents/ke.bou.dark-mode-notify.plist` will keep it running on boot.
+And then load it with
+
+```sh
+launchctl load -w ~/Library/LaunchAgents/ke.bou.dark-mode-notify.plist
+```
 
 ## Credit
 
-This script is a lightly modified version of https://github.com/mnewt/dotemacs/blob/master/bin/dark-mode-notifier.swift
+This script is a lightly modified version of <https://github.com/mnewt/dotemacs/blob/master/bin/dark-mode-notifier.swift>.
